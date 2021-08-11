@@ -4,6 +4,7 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentManager
 import androidx.lifecycle.Lifecycle
 import androidx.viewpager2.adapter.FragmentStateAdapter
+import id.deval.android_test.ui.tab.issue.IssueFragment
 import id.deval.android_test.ui.tab.repository.RepositoryFragment
 import id.deval.android_test.ui.tab.user.UserFragment
 
@@ -20,7 +21,7 @@ class ViewPagerAdapter(fragmentManager: FragmentManager, lifecycle: Lifecycle) :
         when (position) {
             0 -> return UserFragment()
             1 -> return RepositoryFragment()
-            2 -> return RepositoryFragment()
+            2 -> return IssueFragment()
         }
         return UserFragment()
     }
