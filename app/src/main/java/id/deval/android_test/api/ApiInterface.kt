@@ -25,8 +25,10 @@ interface ApiInterface {
         @Query("page") page: Int? = 1
     ): Call<ModelWrapper<Repository>>
 
-    @GET("issues?q={query}")
+    @GET("issues?")
     fun getIssues(
-        @Path("query") query: String = "a"
+        @Query("q") query: String = "a",
+        @Query("per_page") per_page: Int = 10,
+        @Query("page") page: Int? = 1
     ): Call<ModelWrapper<Issue>>
 }
