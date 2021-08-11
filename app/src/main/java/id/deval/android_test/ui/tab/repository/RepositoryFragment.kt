@@ -1,6 +1,7 @@
 package id.deval.android_test.ui.tab.repository
 
 import android.os.Bundle
+import android.util.Log
 import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
@@ -8,56 +9,69 @@ import android.view.ViewGroup
 import android.widget.LinearLayout
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.google.android.material.textview.MaterialTextView
+import id.deval.android_test.BuildConfig.TAG
 import id.deval.android_test.R
 import id.deval.android_test.adapter.RepositoryRecyclerViewAdapter
+import id.deval.android_test.api.ApiFactory
+import id.deval.android_test.api.ApiInterface
+import id.deval.android_test.model.ModelWrapper
 import id.deval.android_test.model.Repository
+import retrofit2.Call
+import retrofit2.Callback
+import retrofit2.Response
 
-val listRepository: MutableList<Repository?> = mutableListOf(
-    Repository(
-        "flick-text/android",
-        "Test yang dilakukan untuk menguji kemampuan peserta atau calon pekerja yang nanti akan ditempatkan askdjasdkl klkaskj asdlk",
-        120230,
-        "Java",
-        12312,
-        null
-    ),
-    Repository(
-        "flick-text/android",
-        "Test yang dilakukan untuk menguji kemampuan peserta atau calon pekerja yang nanti akan ditempatkan askdjasdkl klkaskj asdlk",
-        120230,
-        "Vue",
-        12312,
-        null
-    ),
-    Repository(
-        "flick-text/android",
-        "Test yang dilakukan untuk menguji kemampuan peserta atau calon pekerja yang nanti akan ditempatkan askdjasdkl klkaskj asdlk",
-        120230,
-        "Go",
-        12312,
-        null
-    ),
-    Repository(
-        "flick-text/android",
-        "Test yang dilakukan untuk menguji kemampuan peserta atau calon pekerja yang nanti akan ditempatkan askdjasdkl klkaskj asdlk",
-        120230,
-        "JavaScript",
-        12312,
-        null
-    ),
-    Repository(
-        "flick-text/android",
-        "Test yang dilakukan untuk menguji kemampuan peserta atau calon pekerja yang nanti akan ditempatkan askdjasdkl klkaskj asdlk",
-        120230,
-        "Kotlin",
-        12312,
-        null
-    ),
-)
+//val listRepository: MutableList<Repository?> = mutableListOf(
+//    Repository(
+//        "flick-text/android",
+//        "Test yang dilakukan untuk menguji kemampuan peserta atau calon pekerja yang nanti akan ditempatkan askdjasdkl klkaskj asdlk",
+//        120230,
+//        "Java",
+//        12312,
+//        null
+//    ),
+//    Repository(
+//        "flick-text/android",
+//        "Test yang dilakukan untuk menguji kemampuan peserta atau calon pekerja yang nanti akan ditempatkan askdjasdkl klkaskj asdlk",
+//        120230,
+//        "Vue",
+//        12312,
+//        null
+//    ),
+//    Repository(
+//        "flick-text/android",
+//        "Test yang dilakukan untuk menguji kemampuan peserta atau calon pekerja yang nanti akan ditempatkan askdjasdkl klkaskj asdlk",
+//        120230,
+//        "Go",
+//        12312,
+//        null
+//    ),
+//    Repository(
+//        "flick-text/android",
+//        "Test yang dilakukan untuk menguji kemampuan peserta atau calon pekerja yang nanti akan ditempatkan askdjasdkl klkaskj asdlk",
+//        120230,
+//        "JavaScript",
+//        12312,
+//        null
+//    ),
+//    Repository(
+//        "flick-text/android",
+//        "Test yang dilakukan untuk menguji kemampuan peserta atau calon pekerja yang nanti akan ditempatkan askdjasdkl klkaskj asdlk",
+//        120230,
+//        "Kotlin",
+//        12312,
+//        null
+//    ),
+//)
 
 class RepositoryFragment : Fragment() {
 
+    val restForeground by lazy { ApiFactory.create() }
     lateinit var rvRepository: RecyclerView
+    lateinit var tvLoadMore: MaterialTextView
+    lateinit var repoAdapter: RepositoryRecyclerViewAdapter
+    var page = 1
+    var listRepository: MutableList<Repository?> = mutableListOf()
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -70,11 +84,50 @@ class RepositoryFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         rvRepository = view.findViewById(R.id.rv_repo_container)
+        tvLoadMore = view.findViewById(R.id.tv_repoFrag_more)
 
         rvRepository.layoutManager =
             LinearLayoutManager(activity, LinearLayoutManager.VERTICAL, false)
         rvRepository.isNestedScrollingEnabled = false
-        rvRepository.adapter = RepositoryRecyclerViewAdapter(listRepository)
+        repoAdapter = RepositoryRecyclerViewAdapter(listRepository)
+        rvRepository.adapter = repoAdapter
+
+        getRepositories(page)
+
+        tvLoadMore.setOnClickListener {
+            page += 1
+            getRepositories(page)
+        }
     }
 
+    fun getRepositories(page: Int) {
+        try {
+            var result = restForeground.getRepositories(page = page)
+            result.enqueue(object : Callback<ModelWrapper<Repository>> {
+                override fun onResponse(
+                    call: Call<ModelWrapper<Repository>>,
+                    response: Response<ModelWrapper<Repository>>
+                ) {
+                    if (response.isSuccessful) {
+                        val data = response.body()
+                        if (data != null) {
+                            data.items?.let { listRepository.addAll(it) }
+                            repoAdapter.notifyDataSetChanged()
+                            Log.d(TAG, "onResponse: $data")
+                            tvLoadMore.visibility = View.VISIBLE
+                        }
+                    } else {
+                        Log.d(TAG, "onResponse: $response")
+                    }
+                }
+
+                override fun onFailure(call: Call<ModelWrapper<Repository>>, t: Throwable) {
+                    Log.d(TAG, "onFailure: $t")
+                }
+
+            })
+        } catch (e: Exception) {
+            Log.d(TAG, "getRepositories: $e")
+        }
+    }
 }

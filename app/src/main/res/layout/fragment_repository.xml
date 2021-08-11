@@ -24,6 +24,22 @@
             tools:itemCount="12"
             tools:listitem="@layout/repository_item" />
 
+        <com.google.android.material.textview.MaterialTextView
+            android:id="@+id/tv_repoFrag_more"
+            style="@style/TextAppearance.MaterialComponents.Subtitle1"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:ellipsize="end"
+            android:maxLines="1"
+            android:visibility="gone"
+            android:padding="4dp"
+            android:text="Load More"
+            android:textColor="@color/white"
+            android:textStyle="bold"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/rv_repo_container" />
+
     </androidx.constraintlayout.widget.ConstraintLayout>
 
 </androidx.core.widget.NestedScrollView>
