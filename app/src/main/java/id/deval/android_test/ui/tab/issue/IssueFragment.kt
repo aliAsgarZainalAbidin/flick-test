@@ -8,8 +8,10 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
 import com.google.android.material.textview.MaterialTextView
 import id.deval.android_test.BuildConfig.TAG
+import id.deval.android_test.MainActivity
 import id.deval.android_test.R
 import id.deval.android_test.adapter.IssueRecyclerViewAdapter
 import id.deval.android_test.api.ApiFactory
@@ -19,22 +21,24 @@ import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
 
-val listIssue: MutableList<Issue?> = mutableListOf(
-    Issue("tmns/a", "2021-06-02T09:39:45Z", "2021-06-02T09:39:45Z", 12),
-    Issue("flick-test/android", "2021-06-02T09:39:45Z", "2021-06-02T09:39:45Z", 12),
-    Issue("flick-android/a", "2021-06-02T09:39:45Z", "2021-06-02T09:39:45Z", 12),
-    Issue("flick", "2021-06-02T09:39:45Z", "2021-06-02T09:39:45Z", 12),
-    Issue("test-android", "2021-06-02T09:39:45Z", "2021-06-02T09:39:45Z", 12),
-)
+//val listIssue: MutableList<Issue?> = mutableListOf(
+//    Issue("tmns/a", "2021-06-02T09:39:45Z", "2021-06-02T09:39:45Z", 12),
+//    Issue("flick-test/android", "2021-06-02T09:39:45Z", "2021-06-02T09:39:45Z", 12),
+//    Issue("flick-android/a", "2021-06-02T09:39:45Z", "2021-06-02T09:39:45Z", 12),
+//    Issue("flick", "2021-06-02T09:39:45Z", "2021-06-02T09:39:45Z", 12),
+//    Issue("test-android", "2021-06-02T09:39:45Z", "2021-06-02T09:39:45Z", 12),
+//)
+
+var listIssue: MutableList<Issue?> = mutableListOf()
 
 class IssueFragment : Fragment() {
 
     val restForeground by lazy { ApiFactory.create() }
-    var listIssue: MutableList<Issue?> = mutableListOf()
     lateinit var tvLoadMore: MaterialTextView
     lateinit var rvIssue: RecyclerView
     lateinit var issueAdapter: IssueRecyclerViewAdapter
     var page = 1
+    var root: SwipeRefreshLayout? = null
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -55,6 +59,9 @@ class IssueFragment : Fragment() {
             page += 1
             getIssues(page)
         }
+
+        val mainActivity: MainActivity = this.activity as MainActivity
+        root = mainActivity.findViewById(R.id.root)
 
         val layoutManager = LinearLayoutManager(activity, LinearLayoutManager.VERTICAL, false)
         rvIssue.layoutManager = layoutManager
@@ -77,6 +84,7 @@ class IssueFragment : Fragment() {
                             data.items?.let { listIssue.addAll(it) }
                             issueAdapter.notifyDataSetChanged()
                             tvLoadMore.visibility = View.VISIBLE
+                            root?.isRefreshing = false
                         }
                     } else {
                         Log.d(TAG, "onResponse: $response")

@@ -62,6 +62,7 @@ dependencies {
     implementation "com.squareup.retrofit2:converter-gson:$versions_retrofit"
     implementation "org.jetbrains.kotlinx:kotlinx-coroutines-core:$versions_coroutine"
     implementation "org.jetbrains.kotlinx:kotlinx-coroutines-android:$versions_coroutine"
+    implementation "androidx.swiperefreshlayout:swiperefreshlayout:1.1.0"
 
     annotationProcessor "com.github.bumptech.glide:compiler:4.12.0"
 }

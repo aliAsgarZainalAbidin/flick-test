@@ -9,8 +9,10 @@ import android.view.ViewGroup
 import android.widget.LinearLayout
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
 import com.google.android.material.textview.MaterialTextView
 import id.deval.android_test.BuildConfig.TAG
+import id.deval.android_test.MainActivity
 import id.deval.android_test.R
 import id.deval.android_test.adapter.RepositoryRecyclerViewAdapter
 import id.deval.android_test.api.ApiFactory
@@ -64,6 +66,8 @@ import retrofit2.Response
 //    ),
 //)
 
+var listRepository: MutableList<Repository?> = mutableListOf()
+
 class RepositoryFragment : Fragment() {
 
     val restForeground by lazy { ApiFactory.create() }
@@ -71,7 +75,7 @@ class RepositoryFragment : Fragment() {
     lateinit var tvLoadMore: MaterialTextView
     lateinit var repoAdapter: RepositoryRecyclerViewAdapter
     var page = 1
-    var listRepository: MutableList<Repository?> = mutableListOf()
+    var root : SwipeRefreshLayout? = null
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -94,6 +98,9 @@ class RepositoryFragment : Fragment() {
 
         getRepositories(page)
 
+        val mainActivity : MainActivity = this.activity as MainActivity
+        root = mainActivity.findViewById(R.id.root)
+
         tvLoadMore.setOnClickListener {
             page += 1
             getRepositories(page)
@@ -115,6 +122,7 @@ class RepositoryFragment : Fragment() {
                             repoAdapter.notifyDataSetChanged()
                             Log.d(TAG, "onResponse: $data")
                             tvLoadMore.visibility = View.VISIBLE
+                            root?.isRefreshing = false
                         }
                     } else {
                         Log.d(TAG, "onResponse: $response")

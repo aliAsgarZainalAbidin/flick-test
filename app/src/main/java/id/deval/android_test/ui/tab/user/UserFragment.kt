@@ -12,8 +12,10 @@ import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import androidx.recyclerview.widget.StaggeredGridLayoutManager
+import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
 import com.google.android.material.textview.MaterialTextView
 import id.deval.android_test.BuildConfig.TAG
+import id.deval.android_test.MainActivity
 import id.deval.android_test.R
 import id.deval.android_test.adapter.UserRecyclerViewAdapter
 import id.deval.android_test.api.ApiFactory
@@ -57,7 +59,9 @@ class UserFragment : Fragment() {
     lateinit var userAdapter: UserRecyclerViewAdapter
     var finished: String = "false"
     var page = 1
-    lateinit var root: NestedScrollView
+    var root: SwipeRefreshLayout? = null
+
+    //    lateinit var swipe: SwipeRefreshLayout
     lateinit var layoutManager: GridLayoutManager
     lateinit var tvLoadMore: MaterialTextView
 
@@ -72,15 +76,18 @@ class UserFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         rvUser = view.findViewById(R.id.rv_user_container)
-        root = view.findViewById(R.id.root)
         tvLoadMore = view.findViewById(R.id.tv_userFrag_more)
+//        swipe = view.findViewById(R.id.root)
 
         layoutManager = GridLayoutManager(activity, 3, LinearLayoutManager.VERTICAL, false)
-        rvUser.layoutManager = layoutManager
         rvUser.isNestedScrollingEnabled = false
+        rvUser.layoutManager = layoutManager
         userAdapter = UserRecyclerViewAdapter(listUser)
         rvUser.adapter = userAdapter
         getUsers(page)
+
+        var mainActivity : MainActivity? = this.activity as MainActivity
+        root = mainActivity?.findViewById(R.id.root)
 
         tvLoadMore.setOnClickListener {
             page += 1
@@ -118,6 +125,7 @@ class UserFragment : Fragment() {
                             Log.d(TAG, "onResponse: ${data.items}")
                             userAdapter.notifyDataSetChanged()
                             tvLoadMore.visibility = View.VISIBLE
+                            root?.isRefreshing = false
                         }
                     } else {
                         Log.d(TAG, "onResponse: $response")
