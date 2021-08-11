@@ -1,12 +1,30 @@
 package id.deval.android_test.api
 
+import id.deval.android_test.model.Issue
 import id.deval.android_test.model.ModelWrapper
+import id.deval.android_test.model.Repository
 import id.deval.android_test.model.User
 import retrofit2.Call
 import retrofit2.http.GET
+import retrofit2.http.Path
+import retrofit2.http.Query
 
 interface ApiInterface {
 
-    @GET("user?q={}")
-    fun getUsers(): Call<ModelWrapper<User>>
+    @GET("users?")
+    fun getUsers(
+        @Query("q") query: String = "a",
+        @Query("per_page") per_page: Int = 10,
+        @Query("page") page: Int? = 1
+    ): Call<ModelWrapper<User>>
+
+    @GET("repositories?q={query}")
+    fun getRepositories(
+        @Path("query") query: String = "a"
+    ): Call<ModelWrapper<Repository>>
+
+    @GET("issues?q={query}")
+    fun getIssues(
+        @Path("query") query: String = "a"
+    ): Call<ModelWrapper<Issue>>
 }

@@ -10,6 +10,7 @@ import com.google.android.material.textview.MaterialTextView
 import de.hdodenhof.circleimageview.CircleImageView
 import id.deval.android_test.R
 import id.deval.android_test.model.User
+import id.deval.android_test.util.GlideApp
 
 class UserRecyclerViewAdapter(var listUser: MutableList<User?>) :
     RecyclerView.Adapter<UserRecyclerViewAdapter.UserViewHolder>() {
@@ -44,6 +45,7 @@ class UserRecyclerViewAdapter(var listUser: MutableList<User?>) :
             user: User
         ) {
             with(itemView) {
+
                 Glide.with(itemView.context)
                     .load(user.avatar_url)
                     .centerCrop()

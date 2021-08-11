@@ -7,7 +7,6 @@ import android.widget.ImageView
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
 import com.google.android.material.textview.MaterialTextView
-import de.hdodenhof.circleimageview.CircleImageView
 import id.deval.android_test.R
 import id.deval.android_test.model.Repository
 

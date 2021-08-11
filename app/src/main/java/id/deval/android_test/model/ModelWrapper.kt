@@ -15,5 +15,5 @@ open class ModelWrapper<T> : Parcelable {
     open var incompleteResults: Boolean? = false
 
     @field:SerializedName("items")
-    open var items: T? = null
+    open var items: MutableList<T>? = null
 }

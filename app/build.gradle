@@ -15,16 +15,15 @@ android {
         targetSdkVersion 30
         versionCode 1
         versionName "1.0"
-        buildConfigField ("String", "BASE_URL", "https://api.github.com/search/")
-        buildConfigField ("String", "TAG", "Flick-test")
+
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }
 
     buildTypes {
         debug {
-            buildConfigField "String", "BASE_URL", "https://api.github.com/search/"
-            buildConfigField "String", "TAG", "Flick-test"
+            buildConfigField "String", "BASE_URL", "\"https://api.github.com/search/\""
+            buildConfigField "String", "TAG", "\"Flick-test\""
         }
         release {
             buildConfigField "String", "BASE_URL", "https://api.github.com/search/"
@@ -63,4 +62,6 @@ dependencies {
     implementation "com.squareup.retrofit2:converter-gson:$versions_retrofit"
     implementation "org.jetbrains.kotlinx:kotlinx-coroutines-core:$versions_coroutine"
     implementation "org.jetbrains.kotlinx:kotlinx-coroutines-android:$versions_coroutine"
+
+    annotationProcessor "com.github.bumptech.glide:compiler:4.12.0"
 }
