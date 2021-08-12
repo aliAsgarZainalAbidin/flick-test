@@ -32,7 +32,7 @@ import id.deval.android_test.ui.tab.user.userAdapter
 
 class MainActivity : AppCompatActivity() {
 
-    private val LIST_TAB = arrayListOf<String>("User", "Repository", "Issue")
+    private val LIST_TAB = arrayListOf("User", "Repository", "Issue")
     private lateinit var viewpager: ViewPager2
     private lateinit var appbar: AppBarLayout
     private lateinit var tabLayout: TabLayout
@@ -59,11 +59,6 @@ class MainActivity : AppCompatActivity() {
                 else -> "f0"
             }
             val fragment = fragmentManager.findFragmentByTag(tag)
-
-            Log.d(
-                TAG,
-                "onCreate:$fragment ${fragment} =>> position ${tabLayout.selectedTabPosition}"
-            )
             when (fragment) {
                 is UserFragment -> {
                     listUser.clear()
