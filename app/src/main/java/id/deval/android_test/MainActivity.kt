@@ -5,10 +5,13 @@ import android.os.Bundle
 import android.os.Handler
 import android.util.Log
 import android.view.MenuItem
+import android.view.View
 import android.widget.Toast
+import androidx.activity.viewModels
 import androidx.appcompat.widget.SearchView
 import androidx.core.widget.NestedScrollView
 import androidx.fragment.app.FragmentManager
+import androidx.lifecycle.Observer
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
 import androidx.viewpager2.widget.ViewPager2
 import com.google.android.material.appbar.AppBarLayout
@@ -17,10 +20,12 @@ import com.google.android.material.tabs.TabLayout
 import com.google.android.material.tabs.TabLayoutMediator
 import id.deval.android_test.BuildConfig.TAG
 import id.deval.android_test.adapter.ViewPagerAdapter
-import id.deval.android_test.ui.tab.issue.IssueFragment
-import id.deval.android_test.ui.tab.issue.getIssues
-import id.deval.android_test.ui.tab.issue.issueAdapter
-import id.deval.android_test.ui.tab.issue.listIssue
+import id.deval.android_test.model.Issue
+import id.deval.android_test.model.ModelWrapper
+import id.deval.android_test.model.Repository
+import id.deval.android_test.model.User
+import id.deval.android_test.repository.DataRepository
+import id.deval.android_test.ui.tab.issue.*
 import id.deval.android_test.ui.tab.repository.RepositoryFragment
 import id.deval.android_test.ui.tab.repository.getRepositories
 import id.deval.android_test.ui.tab.repository.listRepository
@@ -39,6 +44,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var toolbar: MaterialToolbar
     private lateinit var root: SwipeRefreshLayout
     private lateinit var fragmentManager: FragmentManager
+    val viewModel: MainViewModel by viewModels()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -51,6 +57,8 @@ class MainActivity : AppCompatActivity() {
         root = findViewById(R.id.root)
         fragmentManager = supportFragmentManager
 
+        viewModel.dataRepository = DataRepository(restForeground)
+
         root.setOnRefreshListener {
             val tag = when (tabLayout.selectedTabPosition) {
                 0 -> "f0"
@@ -62,18 +70,18 @@ class MainActivity : AppCompatActivity() {
             when (fragment) {
                 is UserFragment -> {
                     listUser.clear()
-                    userAdapter.notifyDataSetChanged()
-                    getUsers(1)
+                    viewModel.users.observe(this, observerUser)
+//                    getUsers(1)
                 }
                 is RepositoryFragment -> {
                     listRepository.clear()
-                    repoAdapter.notifyDataSetChanged()
-                    getRepositories(1)
+                    viewModel.repo.observe(this, observerRepo)
+//                    getRepositories(1)
                 }
                 is IssueFragment -> {
                     listIssue.clear()
-                    issueAdapter.notifyDataSetChanged()
-                    getIssues(1)
+                    viewModel.issue.observe(this, observerIssue)
+//                    getIssues(1)
                 }
                 else -> {
                     root.isRefreshing = false
@@ -93,20 +101,17 @@ class MainActivity : AppCompatActivity() {
             when (tabLayout.selectedTabPosition) {
                 0 -> {
                     listUser.clear()
-                    userAdapter.notifyDataSetChanged()
-                    getUsers(page = 1)
+                    viewModel.users.observe(this, observerUser)
                     return@setOnCloseListener false
                 }
                 1 -> {
                     listRepository.clear()
-                    repoAdapter.notifyDataSetChanged()
-                    getRepositories(page = 1)
+                    viewModel.repo.observe(this, observerRepo)
                     return@setOnCloseListener false
                 }
                 2 -> {
                     listIssue.clear()
-                    issueAdapter.notifyDataSetChanged()
-                    getIssues(page = 1)
+                    viewModel.repo.observe(this, observerRepo)
                     return@setOnCloseListener false
                 }
             }
@@ -118,36 +123,33 @@ class MainActivity : AppCompatActivity() {
                     when (tabLayout.selectedTabPosition) {
                         0 -> {
                             listUser.clear()
-                            userAdapter.notifyDataSetChanged()
-                            getUsers(page = 1, q = query)
+                            viewModel.q = query
+                            viewModel.users.observe(this@MainActivity, observerUser)
                         }
                         1 -> {
                             listRepository.clear()
-                            repoAdapter.notifyDataSetChanged()
-                            getRepositories(page = 1, q = query)
+                            viewModel.q = query
+                            viewModel.repo.observe(this@MainActivity, observerRepo)
                         }
                         2 -> {
                             listIssue.clear()
-                            issueAdapter.notifyDataSetChanged()
-                            getIssues(page = 1, q = query)
+                            viewModel.q = query
+                            viewModel.issue.observe(this@MainActivity, observerIssue)
                         }
                     }
                 } else {
                     when (tabLayout.selectedTabPosition) {
                         0 -> {
                             listUser.clear()
-                            userAdapter.notifyDataSetChanged()
-                            getUsers(page = 1)
+                            viewModel.users.observe(this@MainActivity, observerUser)
                         }
                         1 -> {
                             listRepository.clear()
-                            repoAdapter.notifyDataSetChanged()
-                            getRepositories(page = 1)
+                            viewModel.repo.observe(this@MainActivity, observerRepo)
                         }
                         2 -> {
                             listIssue.clear()
-                            issueAdapter.notifyDataSetChanged()
-                            getIssues(page = 1)
+                            viewModel.issue.observe(this@MainActivity, observerIssue)
                         }
                     }
                 }
@@ -155,50 +157,61 @@ class MainActivity : AppCompatActivity() {
             }
 
             override fun onQueryTextChange(newText: String?): Boolean {
-                Handler().postDelayed({
-                    if (newText != null && newText != "") {
-                        when (tabLayout.selectedTabPosition) {
-                            0 -> {
-                                listUser.clear()
-                                userAdapter.notifyDataSetChanged()
-                                getUsers(page = 1, q = newText)
-                            }
-                            1 -> {
-                                listRepository.clear()
-                                repoAdapter.notifyDataSetChanged()
-                                getRepositories(page = 1, q = newText)
-                            }
-                            2 -> {
-                                listIssue.clear()
-                                issueAdapter.notifyDataSetChanged()
-                                getIssues(page = 1, q = newText)
-                            }
+                viewModel.page = 1
+                viewModel.q = newText ?: "a"
+                if (newText != null && newText != "") {
+                    when (tabLayout.selectedTabPosition) {
+                        0 -> {
+                            listUser.clear()
+                            viewModel.users.observe(this@MainActivity, observerUser)
                         }
-                    } else {
-                        when (tabLayout.selectedTabPosition) {
-                            0 -> {
-                                listUser.clear()
-                                userAdapter.notifyDataSetChanged()
-                                getUsers(page = 1)
-                            }
-                            1 -> {
-                                listRepository.clear()
-                                repoAdapter.notifyDataSetChanged()
-                                getRepositories(page = 1)
-                            }
-                            2 -> {
-                                listIssue.clear()
-                                issueAdapter.notifyDataSetChanged()
-                                getIssues(page = 1)
-                            }
+                        1 -> {
+                            listRepository.clear()
+                            viewModel.repo.observe(this@MainActivity, observerRepo)
+                        }
+                        2 -> {
+                            listIssue.clear()
+                            viewModel.issue.observe(this@MainActivity, observerIssue)
                         }
                     }
-                }, 100)
+                } else {
+                    when (tabLayout.selectedTabPosition) {
+                        0 -> {
+                            listUser.clear()
+                            viewModel.users.observe(this@MainActivity, observerUser)
+                        }
+                        1 -> {
+                            listRepository.clear()
+                            viewModel.repo.observe(this@MainActivity, observerRepo)
+                        }
+                        2 -> {
+                            listIssue.clear()
+                            viewModel.issue.observe(this@MainActivity, observerIssue)
+                        }
+                    }
+                }
                 return true
             }
 
         })
         Log.d(TAG, "onCreate: $searchView")
+    }
 
+    val observerUser = Observer<ModelWrapper<User>> {
+        it?.items?.let { data -> listUser.addAll(data) }
+        userAdapter.notifyDataSetChanged()
+        root.isRefreshing = false
+    }
+
+    val observerRepo = Observer<ModelWrapper<Repository>> {
+        it.items?.let { data -> listRepository.addAll(data) }
+        repoAdapter.notifyDataSetChanged()
+        root.isRefreshing = false
+    }
+
+    val observerIssue = Observer<ModelWrapper<Issue>> {
+        it.items?.let { data -> listIssue.addAll(data) }
+        issueAdapter.notifyDataSetChanged()
+        root.isRefreshing = false
     }
 }

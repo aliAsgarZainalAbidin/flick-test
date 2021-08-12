@@ -76,38 +76,6 @@ lateinit var tvLoadMore: MaterialTextView
 lateinit var repoAdapter: RepositoryRecyclerViewAdapter
 var root: SwipeRefreshLayout? = null
 
-fun getRepositories(page: Int, q: String = "q") {
-    try {
-        var result = restForeground.getRepositories(page = page, query = q)
-        result.enqueue(object : Callback<ModelWrapper<Repository>> {
-            override fun onResponse(
-                call: Call<ModelWrapper<Repository>>,
-                response: Response<ModelWrapper<Repository>>
-            ) {
-                if (response.isSuccessful) {
-                    val data = response.body()
-                    if (data != null) {
-                        data.items?.let { listRepository.addAll(it) }
-                        repoAdapter.notifyDataSetChanged()
-                        Log.d(TAG, "onResponse: $data")
-                        tvLoadMore.visibility = View.VISIBLE
-                        root?.isRefreshing = false
-                    }
-                } else {
-                    Log.d(TAG, "onResponse: $response")
-                }
-            }
-
-            override fun onFailure(call: Call<ModelWrapper<Repository>>, t: Throwable) {
-                Log.d(TAG, "onFailure: $t")
-            }
-
-        })
-    } catch (e: Exception) {
-        Log.d(TAG, "getRepositories: $e")
-    }
-}
-
 class RepositoryFragment : Fragment() {
 
     val repoViewModel: RepositoryViewModel by viewModels()

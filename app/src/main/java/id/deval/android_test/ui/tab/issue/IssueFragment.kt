@@ -19,10 +19,7 @@ import id.deval.android_test.adapter.IssueRecyclerViewAdapter
 import id.deval.android_test.api.ApiFactory
 import id.deval.android_test.model.Issue
 import id.deval.android_test.model.ModelWrapper
-import id.deval.android_test.model.Repository
 import id.deval.android_test.repository.DataRepository
-import id.deval.android_test.ui.tab.repository.listRepository
-import id.deval.android_test.ui.tab.repository.repoAdapter
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
@@ -42,37 +39,6 @@ lateinit var rvIssue: RecyclerView
 var root: SwipeRefreshLayout? = null
 
 val restForeground by lazy { ApiFactory.create() }
-
-fun getIssues(page: Int, q: String = "a") {
-    try {
-        var result = restForeground.getIssues(page = page, query = q)
-        result.enqueue(object : Callback<ModelWrapper<Issue>> {
-            override fun onResponse(
-                call: Call<ModelWrapper<Issue>>,
-                response: Response<ModelWrapper<Issue>>
-            ) {
-                if (response.isSuccessful) {
-                    var data = response.body()
-                    if (data != null) {
-                        data.items?.let { listIssue.addAll(it) }
-                        issueAdapter.notifyDataSetChanged()
-                        tvLoadMore.visibility = View.VISIBLE
-                        root?.isRefreshing = false
-                    }
-                } else {
-                    Log.d(TAG, "onResponse: $response")
-                }
-            }
-
-            override fun onFailure(call: Call<ModelWrapper<Issue>>, t: Throwable) {
-                Log.d(TAG, "onFailure: $t")
-            }
-
-        })
-    } catch (e: Exception) {
-        Log.d(TAG, "getIssues: $e")
-    }
-}
 
 class IssueFragment : Fragment() {
 
