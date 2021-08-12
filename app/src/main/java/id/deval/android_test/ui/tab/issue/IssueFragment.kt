@@ -59,7 +59,7 @@ fun getIssues(page: Int, q : String = "a") {
             }
 
             override fun onFailure(call: Call<ModelWrapper<Issue>>, t: Throwable) {
-                TODO("Not yet implemented")
+                Log.d(TAG, "onFailure: $t")
             }
 
         })

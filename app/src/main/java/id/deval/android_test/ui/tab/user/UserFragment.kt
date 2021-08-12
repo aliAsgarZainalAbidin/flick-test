@@ -8,6 +8,8 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.core.widget.NestedScrollView
+import androidx.fragment.app.viewModels
+import androidx.lifecycle.Observer
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
@@ -19,8 +21,10 @@ import id.deval.android_test.MainActivity
 import id.deval.android_test.R
 import id.deval.android_test.adapter.UserRecyclerViewAdapter
 import id.deval.android_test.api.ApiFactory
+import id.deval.android_test.databinding.UserItemBinding
 import id.deval.android_test.model.ModelWrapper
 import id.deval.android_test.model.User
+import id.deval.android_test.repository.DataRepository
 import okhttp3.ResponseBody
 import retrofit2.Call
 import retrofit2.Callback
@@ -93,50 +97,49 @@ class UserFragment : Fragment() {
 
     var page = 1
     lateinit var layoutManager: GridLayoutManager
+    private val userViewModel: UserViewModel by viewModels()
+
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
         // Inflate the layout for this fragment
-        return inflater.inflate(R.layout.fragment_user, container, false)
+        val view = inflater.inflate(R.layout.fragment_user, container, false)
+        return view
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         rvUser = view.findViewById(R.id.rv_user_container)
         tvLoadMore = view.findViewById(R.id.tv_userFrag_more)
-//        swipe = view.findViewById(R.id.root)
 
         layoutManager = GridLayoutManager(activity, 3, LinearLayoutManager.VERTICAL, false)
         rvUser.isNestedScrollingEnabled = false
         rvUser.layoutManager = layoutManager
         userAdapter = UserRecyclerViewAdapter(listUser)
         rvUser.adapter = userAdapter
-        getUsers(page)
 
         var mainActivity: MainActivity? = this.activity as MainActivity
         root = mainActivity?.findViewById(R.id.root)
+        getUsers(page)
 
+        userViewModel.dataRepository = DataRepository(
+            restForeground
+        )
         tvLoadMore.setOnClickListener {
             page += 1
             getUsers(page)
+//            userViewModel.loadUsers(page = page)
+//            userViewModel.users.observe(this.viewLifecycleOwner, observer)
         }
 
-//        root?.viewTreeObserver?.addOnScrollChangedListener {
-//            var view = root?.getChildAt(root?.childCount!! - 1) as View
-//            var diff = view.bottom - (root?.height!! + root?.scrollY!!)
-//
-//            if (diff == 0 && finished == "false") {
-//                if (layoutManager.findLastVisibleItemPosition() == layoutManager.itemCount - 1) {
-//                    finished = "waiting"
-//                    Handler().postDelayed({
-//                        page += 1
-//                        getUsers(page)
-//                    }, 500)
-//                }
-//            }
-//        }
+        //        userViewModel.users.observe(this.viewLifecycleOwner, observer)
     }
 
-
+    val observer = Observer<ModelWrapper<User>> {
+        it?.items?.let { data -> listUser.addAll(data) }
+        userAdapter.notifyDataSetChanged()
+        Log.d(TAG, "onChanged: running")
+        Log.d(TAG, "onChanged: ViewModel ${listUser.size}")
+    }
 }

@@ -89,7 +89,6 @@ class MainActivity : AppCompatActivity() {
 
         val adapter = ViewPagerAdapter(supportFragmentManager, lifecycle)
         viewpager.adapter = adapter
-
         TabLayoutMediator(tabLayout, viewpager) { tab, position ->
             tab.text = LIST_TAB[position]
         }.attach()
