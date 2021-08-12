@@ -121,25 +121,21 @@ class UserFragment : Fragment() {
 
         var mainActivity: MainActivity? = this.activity as MainActivity
         root = mainActivity?.findViewById(R.id.root)
-        getUsers(page)
+//        getUsers(page)
+        tvLoadMore.setOnClickListener {
+            userViewModel.page += 1
+            userViewModel.users.observe(viewLifecycleOwner, observer)
+            //            getUsers(page)
+        }
 
         userViewModel.dataRepository = DataRepository(
             restForeground
         )
-        tvLoadMore.setOnClickListener {
-            page += 1
-            getUsers(page)
-//            userViewModel.loadUsers(page = page)
-//            userViewModel.users.observe(this.viewLifecycleOwner, observer)
-        }
-
-        //        userViewModel.users.observe(this.viewLifecycleOwner, observer)
+        userViewModel.users.observe(viewLifecycleOwner, observer)
     }
 
     val observer = Observer<ModelWrapper<User>> {
         it?.items?.let { data -> listUser.addAll(data) }
         userAdapter.notifyDataSetChanged()
-        Log.d(TAG, "onChanged: running")
-        Log.d(TAG, "onChanged: ViewModel ${listUser.size}")
     }
 }

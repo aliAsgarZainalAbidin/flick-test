@@ -19,19 +19,8 @@ class UserViewModel : ViewModel() {
 
     val users: LiveData<ModelWrapper<User>>
         get() {
-//            loadUsers()
             Log.d(TAG, "getUser ViewModel:  ${dataRepository.getUsers().value}")
-            return dataRepository.getUsers()
+            return dataRepository.getUsers(page, q)
         }
 
-    fun UserViewModel(
-        dataRepository: DataRepository
-    ) {
-        this.dataRepository = dataRepository
-    }
-
-    fun loadUsers(page: Int = 1, q: String = "a") {
-        Log.d(TAG, "loadUsers: running")
-        dataRepository.loadUsers(page, q)
-    }
 }

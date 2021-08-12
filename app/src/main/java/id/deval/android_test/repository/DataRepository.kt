@@ -17,10 +17,9 @@ class DataRepository(val apiInterface: ApiInterface) {
 
     private lateinit var mUsers: MediatorLiveData<ModelWrapper<User>>
 
-    fun loadUsers(page: Int, q: String) {
+    fun getUsers(page: Int = 1, q: String ="a"): LiveData<ModelWrapper<User>> {
         var result = apiInterface.getUsers(query = q, page = page)
         mUsers = MediatorLiveData()
-
         Log.d(TAG, "loadUsers: datarepository running")
         result.enqueue(object : Callback<ModelWrapper<User>> {
 
@@ -52,9 +51,6 @@ class DataRepository(val apiInterface: ApiInterface) {
             }
 
         })
-    }
-
-    fun getUsers(): LiveData<ModelWrapper<User>> {
         return mUsers
     }
 }
