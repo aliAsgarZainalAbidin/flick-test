@@ -6,6 +6,8 @@ import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.fragment.app.viewModels
+import androidx.lifecycle.Observer
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
@@ -17,6 +19,10 @@ import id.deval.android_test.adapter.IssueRecyclerViewAdapter
 import id.deval.android_test.api.ApiFactory
 import id.deval.android_test.model.Issue
 import id.deval.android_test.model.ModelWrapper
+import id.deval.android_test.model.Repository
+import id.deval.android_test.repository.DataRepository
+import id.deval.android_test.ui.tab.repository.listRepository
+import id.deval.android_test.ui.tab.repository.repoAdapter
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
@@ -37,7 +43,7 @@ var root: SwipeRefreshLayout? = null
 
 val restForeground by lazy { ApiFactory.create() }
 
-fun getIssues(page: Int, q : String = "a") {
+fun getIssues(page: Int, q: String = "a") {
     try {
         var result = restForeground.getIssues(page = page, query = q)
         result.enqueue(object : Callback<ModelWrapper<Issue>> {
@@ -70,6 +76,7 @@ fun getIssues(page: Int, q : String = "a") {
 
 class IssueFragment : Fragment() {
 
+    val issueViewModel: IssueViewModel by viewModels()
     var page = 1
 
     override fun onCreateView(
@@ -84,12 +91,15 @@ class IssueFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
         rvIssue = view.findViewById(R.id.rv_issue_container)
         tvLoadMore = view.findViewById(R.id.tv_issueFrag_more)
+//        getIssues(page)
 
-        getIssues(page)
+        issueViewModel.dataRepository = DataRepository(restForeground)
+        issueViewModel.issue.observe(viewLifecycleOwner, observer)
 
         tvLoadMore.setOnClickListener {
-            page += 1
-            getIssues(page)
+            issueViewModel.page += 1
+            issueViewModel.issue.observe(viewLifecycleOwner, observer)
+//            getIssues(page)
         }
 
         val mainActivity: MainActivity = this.activity as MainActivity
@@ -102,5 +112,9 @@ class IssueFragment : Fragment() {
         rvIssue.adapter = issueAdapter
     }
 
-
+    val observer = Observer<ModelWrapper<Issue>> {
+        it.items?.let { data -> listIssue.addAll(data) }
+        tvLoadMore.visibility = View.VISIBLE
+        issueAdapter.notifyDataSetChanged()
+    }
 }

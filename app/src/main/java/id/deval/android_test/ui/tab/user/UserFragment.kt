@@ -136,6 +136,7 @@ class UserFragment : Fragment() {
 
     val observer = Observer<ModelWrapper<User>> {
         it?.items?.let { data -> listUser.addAll(data) }
+        tvLoadMore.visibility = View.VISIBLE
         userAdapter.notifyDataSetChanged()
     }
 }

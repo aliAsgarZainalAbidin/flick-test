@@ -19,13 +19,6 @@ interface ApiInterface {
         @Query("page") page: Int? = 1
     ): Call<ModelWrapper<User>>
 
-    @GET("users?")
-    fun getMUsers(
-        @Query("q") query: String = "a",
-        @Query("per_page") per_page: Int = 10,
-        @Query("page") page: Int? = 1
-    ): Call<MutableLiveData<ModelWrapper<User>>>
-
     @GET("repositories?")
     fun getRepositories(
         @Query("q") query: String = "a",

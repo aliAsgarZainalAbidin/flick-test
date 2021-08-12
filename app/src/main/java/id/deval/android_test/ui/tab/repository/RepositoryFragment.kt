@@ -7,6 +7,8 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.LinearLayout
+import androidx.fragment.app.viewModels
+import androidx.lifecycle.Observer
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
@@ -19,6 +21,7 @@ import id.deval.android_test.api.ApiFactory
 import id.deval.android_test.api.ApiInterface
 import id.deval.android_test.model.ModelWrapper
 import id.deval.android_test.model.Repository
+import id.deval.android_test.repository.DataRepository
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
@@ -71,9 +74,9 @@ val restForeground by lazy { ApiFactory.create() }
 lateinit var rvRepository: RecyclerView
 lateinit var tvLoadMore: MaterialTextView
 lateinit var repoAdapter: RepositoryRecyclerViewAdapter
-var root : SwipeRefreshLayout? = null
+var root: SwipeRefreshLayout? = null
 
-fun getRepositories(page: Int, q : String = "q") {
+fun getRepositories(page: Int, q: String = "q") {
     try {
         var result = restForeground.getRepositories(page = page, query = q)
         result.enqueue(object : Callback<ModelWrapper<Repository>> {
@@ -107,6 +110,7 @@ fun getRepositories(page: Int, q : String = "q") {
 
 class RepositoryFragment : Fragment() {
 
+    val repoViewModel: RepositoryViewModel by viewModels()
     var page = 1
 
     override fun onCreateView(
@@ -128,16 +132,23 @@ class RepositoryFragment : Fragment() {
         repoAdapter = RepositoryRecyclerViewAdapter(listRepository)
         rvRepository.adapter = repoAdapter
 
-        getRepositories(page)
-
-        val mainActivity : MainActivity = this.activity as MainActivity
+//        getRepositories(page)
+        val mainActivity: MainActivity = this.activity as MainActivity
         root = mainActivity.findViewById(R.id.root)
 
+        repoViewModel.dataRepository = DataRepository(restForeground)
+        repoViewModel.repo.observe(viewLifecycleOwner, observer)
+
         tvLoadMore.setOnClickListener {
-            page += 1
-            getRepositories(page)
+            repoViewModel.page += 1
+//            getRepositories(page)
+            repoViewModel.repo.observe(viewLifecycleOwner, observer)
         }
     }
 
-
+    val observer = Observer<ModelWrapper<Repository>> {
+        it.items?.let { data -> listRepository.addAll(data) }
+        tvLoadMore.visibility = View.VISIBLE
+        repoAdapter.notifyDataSetChanged()
+    }
 }
