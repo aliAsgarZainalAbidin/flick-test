@@ -2,7 +2,11 @@ package id.deval.android_test
 
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import android.os.Handler
 import android.util.Log
+import android.view.MenuItem
+import android.widget.Toast
+import androidx.appcompat.widget.SearchView
 import androidx.core.widget.NestedScrollView
 import androidx.fragment.app.FragmentManager
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
@@ -14,11 +18,17 @@ import com.google.android.material.tabs.TabLayoutMediator
 import id.deval.android_test.BuildConfig.TAG
 import id.deval.android_test.adapter.ViewPagerAdapter
 import id.deval.android_test.ui.tab.issue.IssueFragment
+import id.deval.android_test.ui.tab.issue.getIssues
+import id.deval.android_test.ui.tab.issue.issueAdapter
 import id.deval.android_test.ui.tab.issue.listIssue
 import id.deval.android_test.ui.tab.repository.RepositoryFragment
+import id.deval.android_test.ui.tab.repository.getRepositories
 import id.deval.android_test.ui.tab.repository.listRepository
+import id.deval.android_test.ui.tab.repository.repoAdapter
 import id.deval.android_test.ui.tab.user.UserFragment
+import id.deval.android_test.ui.tab.user.getUsers
 import id.deval.android_test.ui.tab.user.listUser
+import id.deval.android_test.ui.tab.user.userAdapter
 
 class MainActivity : AppCompatActivity() {
 
@@ -57,18 +67,18 @@ class MainActivity : AppCompatActivity() {
             when (fragment) {
                 is UserFragment -> {
                     listUser.clear()
-                    fragment.userAdapter.notifyDataSetChanged()
-                    fragment.getUsers(1)
+                    userAdapter.notifyDataSetChanged()
+                    getUsers(1)
                 }
                 is RepositoryFragment -> {
                     listRepository.clear()
-                    fragment.repoAdapter.notifyDataSetChanged()
-                    fragment.getRepositories(1)
+                    repoAdapter.notifyDataSetChanged()
+                    getRepositories(1)
                 }
                 is IssueFragment -> {
                     listIssue.clear()
-                    fragment.issueAdapter.notifyDataSetChanged()
-                    fragment.getIssues(1)
+                    issueAdapter.notifyDataSetChanged()
+                    getIssues(1)
                 }
                 else -> {
                     root.isRefreshing = false
@@ -84,19 +94,117 @@ class MainActivity : AppCompatActivity() {
             tab.text = LIST_TAB[position]
         }.attach()
 
-
-        toolbar.setOnMenuItemClickListener {
-            when (it.itemId) {
-                R.id.refresh -> {
-
-                    true
+        var searchView: SearchView = toolbar.findViewById(R.id.search)
+        searchView.setOnCloseListener {
+            when (tabLayout.selectedTabPosition) {
+                0 -> {
+                    listUser.clear()
+                    userAdapter.notifyDataSetChanged()
+                    getUsers(page = 1)
+                    return@setOnCloseListener false
                 }
-                R.id.search -> {
-                    true
+                1 -> {
+                    listRepository.clear()
+                    repoAdapter.notifyDataSetChanged()
+                    getRepositories(page = 1)
+                    return@setOnCloseListener false
                 }
-                else -> false
+                2 -> {
+                    listIssue.clear()
+                    issueAdapter.notifyDataSetChanged()
+                    getIssues(page = 1)
+                    return@setOnCloseListener false
+                }
             }
+            return@setOnCloseListener false
         }
+        searchView.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
+            override fun onQueryTextSubmit(query: String?): Boolean {
+                if (query != null && query != "") {
+                    when (tabLayout.selectedTabPosition) {
+                        0 -> {
+                            listUser.clear()
+                            userAdapter.notifyDataSetChanged()
+                            getUsers(page = 1, q = query)
+                        }
+                        1 -> {
+                            listRepository.clear()
+                            repoAdapter.notifyDataSetChanged()
+                            getRepositories(page = 1, q = query)
+                        }
+                        2 -> {
+                            listIssue.clear()
+                            issueAdapter.notifyDataSetChanged()
+                            getIssues(page = 1, q = query)
+                        }
+                    }
+                } else {
+                    when (tabLayout.selectedTabPosition) {
+                        0 -> {
+                            listUser.clear()
+                            userAdapter.notifyDataSetChanged()
+                            getUsers(page = 1)
+                        }
+                        1 -> {
+                            listRepository.clear()
+                            repoAdapter.notifyDataSetChanged()
+                            getRepositories(page = 1)
+                        }
+                        2 -> {
+                            listIssue.clear()
+                            issueAdapter.notifyDataSetChanged()
+                            getIssues(page = 1)
+                        }
+                    }
+                }
+                return true
+            }
+
+            override fun onQueryTextChange(newText: String?): Boolean {
+                Handler().postDelayed({
+                    if (newText != null && newText != "") {
+                        when (tabLayout.selectedTabPosition) {
+                            0 -> {
+                                listUser.clear()
+                                userAdapter.notifyDataSetChanged()
+                                getUsers(page = 1, q = newText)
+                            }
+                            1 -> {
+                                listRepository.clear()
+                                repoAdapter.notifyDataSetChanged()
+                                getRepositories(page = 1, q = newText)
+                            }
+                            2 -> {
+                                listIssue.clear()
+                                issueAdapter.notifyDataSetChanged()
+                                getIssues(page = 1, q = newText)
+                            }
+                        }
+                    } else {
+                        when (tabLayout.selectedTabPosition) {
+                            0 -> {
+                                listUser.clear()
+                                userAdapter.notifyDataSetChanged()
+                                getUsers(page = 1)
+                            }
+                            1 -> {
+                                listRepository.clear()
+                                repoAdapter.notifyDataSetChanged()
+                                getRepositories(page = 1)
+                            }
+                            2 -> {
+                                listIssue.clear()
+                                issueAdapter.notifyDataSetChanged()
+                                getIssues(page = 1)
+                            }
+                        }
+                    }
+                }, 100)
+                return true
+            }
+
+        })
+        Log.d(TAG, "onCreate: $searchView")
 
     }
 }

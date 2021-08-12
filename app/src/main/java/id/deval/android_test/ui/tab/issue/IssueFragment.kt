@@ -30,15 +30,47 @@ import retrofit2.Response
 //)
 
 var listIssue: MutableList<Issue?> = mutableListOf()
+lateinit var issueAdapter: IssueRecyclerViewAdapter
+lateinit var tvLoadMore: MaterialTextView
+lateinit var rvIssue: RecyclerView
+var root: SwipeRefreshLayout? = null
+
+val restForeground by lazy { ApiFactory.create() }
+
+fun getIssues(page: Int, q : String = "a") {
+    try {
+        var result = restForeground.getIssues(page = page, query = q)
+        result.enqueue(object : Callback<ModelWrapper<Issue>> {
+            override fun onResponse(
+                call: Call<ModelWrapper<Issue>>,
+                response: Response<ModelWrapper<Issue>>
+            ) {
+                if (response.isSuccessful) {
+                    var data = response.body()
+                    if (data != null) {
+                        data.items?.let { listIssue.addAll(it) }
+                        issueAdapter.notifyDataSetChanged()
+                        tvLoadMore.visibility = View.VISIBLE
+                        root?.isRefreshing = false
+                    }
+                } else {
+                    Log.d(TAG, "onResponse: $response")
+                }
+            }
+
+            override fun onFailure(call: Call<ModelWrapper<Issue>>, t: Throwable) {
+                TODO("Not yet implemented")
+            }
+
+        })
+    } catch (e: Exception) {
+        Log.d(TAG, "getIssues: $e")
+    }
+}
 
 class IssueFragment : Fragment() {
 
-    val restForeground by lazy { ApiFactory.create() }
-    lateinit var tvLoadMore: MaterialTextView
-    lateinit var rvIssue: RecyclerView
-    lateinit var issueAdapter: IssueRecyclerViewAdapter
     var page = 1
-    var root: SwipeRefreshLayout? = null
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -70,35 +102,5 @@ class IssueFragment : Fragment() {
         rvIssue.adapter = issueAdapter
     }
 
-    fun getIssues(page: Int) {
-        try {
-            var result = restForeground.getIssues(page = page)
-            result.enqueue(object : Callback<ModelWrapper<Issue>> {
-                override fun onResponse(
-                    call: Call<ModelWrapper<Issue>>,
-                    response: Response<ModelWrapper<Issue>>
-                ) {
-                    if (response.isSuccessful) {
-                        var data = response.body()
-                        if (data != null) {
-                            data.items?.let { listIssue.addAll(it) }
-                            issueAdapter.notifyDataSetChanged()
-                            tvLoadMore.visibility = View.VISIBLE
-                            root?.isRefreshing = false
-                        }
-                    } else {
-                        Log.d(TAG, "onResponse: $response")
-                    }
-                }
-
-                override fun onFailure(call: Call<ModelWrapper<Issue>>, t: Throwable) {
-                    TODO("Not yet implemented")
-                }
-
-            })
-        } catch (e: Exception) {
-            Log.d(TAG, "getIssues: $e")
-        }
-    }
 
 }

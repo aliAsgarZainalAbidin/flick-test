@@ -51,20 +51,48 @@ import retrofit2.Response
 //)
 
 val listUser: MutableList<User?> = mutableListOf()
+private val restForeground by lazy { ApiFactory.create() }
+lateinit var rvUser: RecyclerView
+lateinit var userAdapter: UserRecyclerViewAdapter
+lateinit var tvLoadMore: MaterialTextView
+var root: SwipeRefreshLayout? = null
+
+fun getUsers(page: Int?, q: String = "a") {
+    val result = restForeground.getUsers(page = page, query = q)
+    try {
+        result.enqueue(object : Callback<ModelWrapper<User>> {
+            override fun onResponse(
+                call: Call<ModelWrapper<User>>,
+                response: Response<ModelWrapper<User>>
+            ) {
+                if (response.isSuccessful) {
+                    val data = response.body()
+                    if (data != null) {
+                        data.items?.let { listUser.addAll(it) }
+                        Log.d(TAG, "onResponse: ${data.items}")
+                        userAdapter.notifyDataSetChanged()
+                        tvLoadMore.visibility = View.VISIBLE
+                        root?.isRefreshing = false
+                    }
+                } else {
+                    Log.d(TAG, "onResponse: $response")
+                }
+            }
+
+            override fun onFailure(call: Call<ModelWrapper<User>>, t: Throwable) {
+                Log.d(TAG, "onFailure: $t.")
+            }
+
+        })
+    } catch (e: Exception) {
+        Log.d(TAG, "getUsers: $e")
+    }
+}
 
 class UserFragment : Fragment() {
 
-    private val restForeground by lazy { ApiFactory.create() }
-    lateinit var rvUser: RecyclerView
-    lateinit var userAdapter: UserRecyclerViewAdapter
-    var finished: String = "false"
     var page = 1
-    var root: SwipeRefreshLayout? = null
-
-    //    lateinit var swipe: SwipeRefreshLayout
     lateinit var layoutManager: GridLayoutManager
-    lateinit var tvLoadMore: MaterialTextView
-
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
@@ -86,7 +114,7 @@ class UserFragment : Fragment() {
         rvUser.adapter = userAdapter
         getUsers(page)
 
-        var mainActivity : MainActivity? = this.activity as MainActivity
+        var mainActivity: MainActivity? = this.activity as MainActivity
         root = mainActivity?.findViewById(R.id.root)
 
         tvLoadMore.setOnClickListener {
@@ -110,35 +138,5 @@ class UserFragment : Fragment() {
 //        }
     }
 
-    fun getUsers(page: Int?) {
-        val result = restForeground.getUsers(page = page)
-        try {
-            result.enqueue(object : Callback<ModelWrapper<User>> {
-                override fun onResponse(
-                    call: Call<ModelWrapper<User>>,
-                    response: Response<ModelWrapper<User>>
-                ) {
-                    if (response.isSuccessful) {
-                        val data = response.body()
-                        if (data != null) {
-                            data.items?.let { listUser.addAll(it) }
-                            Log.d(TAG, "onResponse: ${data.items}")
-                            userAdapter.notifyDataSetChanged()
-                            tvLoadMore.visibility = View.VISIBLE
-                            root?.isRefreshing = false
-                        }
-                    } else {
-                        Log.d(TAG, "onResponse: $response")
-                    }
-                }
 
-                override fun onFailure(call: Call<ModelWrapper<User>>, t: Throwable) {
-                    Log.d(TAG, "onFailure: $t.")
-                }
-
-            })
-        } catch (e: Exception) {
-            Log.d(TAG, "getUsers: $e")
-        }
-    }
 }
